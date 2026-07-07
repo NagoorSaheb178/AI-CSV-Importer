@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       messages: [{ role: "user", content: prompt }],
       model: "llama-3.1-8b-instant",
       temperature: 0,
-      max_completion_tokens: 4000,
+      max_completion_tokens: 2000,
     });
 
     const rawText = completion.choices[0]?.message?.content || "[]";
