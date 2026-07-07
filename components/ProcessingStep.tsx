@@ -22,7 +22,7 @@ interface BatchLog {
   message: string;
 }
 
-const BATCH_SIZE = 25;
+const BATCH_SIZE = 10;
 const MAX_RETRIES = 5;
 
 const ALLOWED_STATUSES = [
