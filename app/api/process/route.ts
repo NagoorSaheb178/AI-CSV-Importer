@@ -1,3 +1,4 @@
+export const maxDuration = 60; // Allow Vercel to run up to 60s
 import { NextRequest, NextResponse } from "next/server";
 import Groq from "groq-sdk";
 import { CRMRecord } from "@/types";
@@ -8,7 +9,7 @@ const ALLOWED_STATUSES = ["GOOD_LEAD_FOLLOW_UP", "DID_NOT_CONNECT", "BAD_LEAD", 
 const ALLOWED_SOURCES = ["leads_on_demand", "meridian_tower", "eden_park", "varah_swamy", "sarjapur_plots"];
 
 function buildBatchPrompt(records: Record<string, any>[]): string {
-  return `You are a strict data extraction AI. Extract and map the following CSV rows into a JSON array of CRM records.
+  return `You are a strict data extraction AI. Extract and map the following CSV rows into a JSON object with a "leads" array containing CRM records.
 RULES:
 1. Map values to these EXACT keys: name, email, country_code, mobile_without_country_code, company, city, state, country, lead_owner, crm_status, crm_note, data_source, possession_time, description.
 2. email: Extract the FIRST valid email found.
@@ -24,10 +25,12 @@ RULES:
 7. data_source: MUST be one of [${ALLOWED_SOURCES.join(", ")}]. If unknown, use "".
 8. CRITICAL: DO NOT skip any rows! You MUST return an array of objects that has the exact same number of items as the input rows.
 
-OUTPUT ONLY A VALID JSON ARRAY OF OBJECTS (no markdown formatting, no explanations):
-[
-  { "name": "", "email": "", "mobile_without_country_code": "", "crm_note": "", "crm_status": "", "data_source": "" }
-]
+OUTPUT ONLY A VALID JSON OBJECT (no markdown formatting, no explanations):
+{
+  "leads": [
+    { "name": "", "email": "", "mobile_without_country_code": "", "crm_note": "", "crm_status": "", "data_source": "" }
+  ]
+}
 
 INPUT ROWS:
 ${JSON.stringify(records)}`;
@@ -48,24 +51,22 @@ export async function POST(req: NextRequest) {
       model: "llama-3.1-8b-instant",
       temperature: 0,
       max_completion_tokens: 2000,
+      response_format: { type: "json_object" },
     });
 
-    const rawText = completion.choices[0]?.message?.content || "[]";
+    const rawText = completion.choices[0]?.message?.content || '{"leads":[]}';
     
     let parsed: any = null;
     try {
       const cleaned = rawText.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
-      parsed = JSON.parse(cleaned);
+      const jsonObj = JSON.parse(cleaned);
+      parsed = jsonObj.leads || jsonObj.imported || [];
     } catch {
        return NextResponse.json({ error: "Invalid JSON from AI" }, { status: 500 });
     }
 
     if (!Array.isArray(parsed)) {
-       if (parsed.imported && Array.isArray(parsed.imported)) {
-           parsed = parsed.imported;
-       } else {
-           return NextResponse.json({ error: "AI did not return an array" }, { status: 500 });
-       }
+       return NextResponse.json({ error: "AI did not return an array" }, { status: 500 });
     }
 
     return NextResponse.json({ extracted: parsed }, { status: 200 });
