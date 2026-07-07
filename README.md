@@ -1,6 +1,5 @@
 # Hey there! 👋 Welcome to the GrowEasy AI CSV Importer
-
-So, here's my submission for the Software Developer role at GrowEasy.ai (sent over to varun@groweasy.ai). I really wanted to build something that feels seamless, so I put together this AI-powered CSV importer. It takes messy CSV files from pretty much any source and intelligently maps them directly to the GrowEasy CRM schema. 
+I really wanted to build something that feels seamless, so I put together this AI-powered CSV importer. It takes messy CSV files from pretty much any source and intelligently maps them directly to the GrowEasy CRM schema. 
 
 ---
 
@@ -167,5 +166,3 @@ Grabs the leads we just saved (you can filter by `batch_id`).
 
 I really enjoyed building this. If you have any questions, you know where to find me.
 
-**Role:** Software Developer (Full-Time)  
-**Submitted to:** varun@groweasy.ai
